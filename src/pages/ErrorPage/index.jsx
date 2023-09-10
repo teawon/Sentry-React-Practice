@@ -7,8 +7,11 @@ function ErrorPage() {
       const str = undefined;
       console.log(str.toString()); // TypeError발생
     } catch (error) {
-      console.error(error);
-      Sentry.captureException(error); // 에러를 Sentry에 전송
+      Sentry.withScope((scope) => {
+        scope.setTag("errorType", "TypeError");
+        scope.setLevel("warning"); //scope를 통해 정보를 추가
+        Sentry.captureException(error); // 에러를 Sentry에 전송
+      });
     }
   };
 
@@ -28,7 +31,7 @@ function ErrorPage() {
         "https://api.causeNetworkError.com/causeNetworkError"
       );
       if (!response.ok) {
-        throw new Error("Network error: " + response.statusText);
+        throw new Error("Network error: " + response.statusText, "fatal");
       }
     } catch (error) {
       console.error(error);
@@ -38,10 +41,13 @@ function ErrorPage() {
 
   const causeCustomError = () => {
     try {
-      throw new Error("커스텀 에러 발생");
+      throw new Error("커스텀 에러, 타입 Fatal 발생 예시");
     } catch (error) {
-      console.error(error);
-      Sentry.captureException(error); // 에러를 Sentry에 전송
+      Sentry.withScope((scope) => {
+        scope.setTag("errorType", "TypeError");
+        scope.setLevel("fatal"); //scope를 통해 정보를 추가
+        Sentry.captureException(error); // 에러를 Sentry에 전송
+      });
     }
   };
 
