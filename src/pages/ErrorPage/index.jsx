@@ -30,12 +30,23 @@ function ErrorPage() {
       const response = await fetch(
         "https://api.causeNetworkError.com/causeNetworkError"
       );
+
       if (!response.ok) {
-        throw new Error("Network error: " + response.statusText, "fatal");
+        throw new Error("Network error: " + response.statusText);
       }
     } catch (error) {
       console.error(error);
-      Sentry.captureException(error); // 에러를 Sentry에 전송
+      Sentry.withScope((scope) => {
+        scope.setContext("apiInfo", {
+          url: "https://api.causeNetworkError.com/causeNetworkError",
+          method: "GET",
+          status: 401,
+          // (헤더, 파라미터 등의 추가정보 등록)
+        });
+        scope.setTag("errorType", "NetworkError"); // 태그 설정
+        scope.setLevel("fatal"); // 레벨 설정
+        Sentry.captureException(error); // 에러를 Sentry에 전송
+      });
     }
   };
 
